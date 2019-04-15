@@ -9,7 +9,6 @@ function activeSource<R>(initial: R): ReactiveFn<R> {
     const fn: ReactiveFn<R> = function(updated?: R) {
         if (arguments.length === 1 && latest !== updated) {
             latest = updated!;
-            // console.log('reactive updated: ' + latest);
             consumers.forEach(c => c());
         }
         return latest;
@@ -45,7 +44,6 @@ function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void):
     const fn = () => {
         const args = inputs.map(d => d());
         execute(...args);
-        // console.log('observe executed');
     };
     inputs.forEach(d => d.registerConsumer(fn));
     return fn;
@@ -80,12 +78,10 @@ function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => 
         for (let i = 0; i < args.length; i++) {
             if (lastArgs[i] !== args[i]) {
                 latest = execute(...args);
-                // console.log('computed updated: ' + latest, lastArgs[i], args[i]);
                 lastArgs = args;
                 break;
             }
         }
-        // console.log('computed returned: ' + latest);
         return latest;
     };
     fn.registerConsumer = (consumer: () => void) => {

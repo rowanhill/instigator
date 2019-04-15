@@ -1,4 +1,4 @@
-import { consumer, activeSource, transformer } from './index';
+import { consumer, activeSource, transformer, batch } from './index';
 
 describe('a consumer with a simple source', () => {
     it('does not invoke automatically', () => {
@@ -119,5 +119,41 @@ describe('multiple consumers derived from the same source', () => {
         expect(spy1).toHaveBeenCalledWith(2);
         expect(spy2).toHaveBeenCalledTimes(1);
         expect(spy2).toHaveBeenCalledWith(2);
+    });
+});
+
+describe('batched updates', () => {
+    it('only updates a consumer once even if multiple of its sources change', () => {
+        const spy = jest.fn();
+        const s1 = activeSource(1);
+        const s2 = activeSource('a');
+        const t = transformer([s1], x => x * 2);
+        consumer([s1, s2, t], spy);
+
+        batch(() => {
+            s1(2);
+            s2('b');
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledWith(2, 'b', 4);
+    });
+
+    it('can be nested', () => {
+        const spy = jest.fn();
+        const s1 = activeSource(1);
+        const s2 = activeSource('a');
+        const t = transformer([s1], x => x * 2);
+        consumer([s1, s2, t], spy);
+
+        batch(() => {
+            s1(2);
+            batch(() => {
+                s2('b');
+            });
+        });
+
+        expect(spy).toHaveBeenCalledTimes(1);
+        expect(spy).toHaveBeenCalledWith(2, 'b', 4);
     });
 });

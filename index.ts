@@ -3,13 +3,23 @@ export interface ReactiveFn<R> {
     registerConsumer: (consumer: () => void) => void;
 }
 
+let batchedConsumers: Set<() => void>|null = null;
+
 export function activeSource<R>(initial: R): ReactiveFn<R> {
     let latest: R = initial;
     const consumers: Set<() => void> = new Set();
     const fn: ReactiveFn<R> = function(updated?: R) {
         if (arguments.length === 1 && latest !== updated) {
             latest = updated!;
-            consumers.forEach(c => c());
+            if (batchedConsumers !== null) {
+                for (const c of consumers) {
+                    batchedConsumers.add(c)
+                }
+            } else {
+                for (const c of consumers) {
+                    c();
+                }
+            }
         }
         return latest;
     };
@@ -103,4 +113,20 @@ export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) =>
     };
     inputs.forEach(d => d.registerConsumer(fn));
     return () => { fn(true); };
+}
+
+export function batch(execute: () => void) {
+    if (batchedConsumers === null) {
+        batchedConsumers = new Set();
+        try {
+            execute();
+            for (const c of batchedConsumers) {
+                c();
+            }
+        } finally {
+            batchedConsumers = null;
+        }
+    } else {
+        execute();
+    }
 }

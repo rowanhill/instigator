@@ -16,6 +16,27 @@ describe('a source', () => {
     });
 });
 
+describe('a transformer', () => {
+    it('can be invoked to get its current value', () => {
+        const source = activeSource(1);
+        const double = transformer([source], (s) => s * 2);
+
+        const val = double();
+
+        expect(val).toBe(2);
+    });
+
+    it('has an updated value when invoked after its source has updated', () => {
+        const source = activeSource(1);
+        const double = transformer([source], (s) => s * 2);
+
+        source(2);
+        const val = double();
+
+        expect(val).toBe(4);
+    });
+});
+
 describe('a consumer with a simple source', () => {
     it('does not invoke automatically', () => {
         const spy = jest.fn();

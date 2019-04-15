@@ -1,21 +1,21 @@
 interface ReactiveFn<R> {
     (updated?: R): R;
-    registerDep: (dep: () => void) => void;
+    registerConsumer: (consumer: () => void) => void;
 }
 
 function activeSource<R>(initial: R): ReactiveFn<R> {
     let latest: R = initial;
-    const deps: Array<() => void> = [];
+    const consumers: Set<() => void> = new Set();
     const fn: ReactiveFn<R> = function(updated?: R) {
         if (arguments.length === 1 && latest !== updated) {
             latest = updated!;
             // console.log('reactive updated: ' + latest);
-            deps.forEach(d => d());
+            consumers.forEach(c => c());
         }
         return latest;
     };
-    fn.registerDep = (dep: () => void) => {
-        deps.push(dep);
+    fn.registerConsumer = (consumer: () => void) => {
+        consumers.add(consumer);
     };
 
     return fn;
@@ -47,12 +47,11 @@ function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void):
         execute(...args);
         // console.log('observe executed');
     };
-    inputs.forEach(d => d.registerDep(fn));
+    inputs.forEach(d => d.registerConsumer(fn));
     return fn;
 }
 
 function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R): ReactiveFn<R> {
-    const deps: Array<() => void> = [];
     let lastArgs = inputs.map(_ => undefined);
     let latest: R = undefined as unknown as R;
     
@@ -60,21 +59,20 @@ function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => 
         const args = inputs.map(d => d());
         for (let i = 0; i < args.length; i++) {
             if (lastArgs[i] !== args[i]) {
-                lastArgs = args;
                 latest = execute(...args);
                 // console.log('computed updated: ' + latest, lastArgs[i], args[i]);
-                deps.forEach(d => d());
+                lastArgs = args;
                 break;
             }
         }
         // console.log('computed returned: ' + latest);
         return latest;
     };
-    fn.registerDep = (dep: () => void) => {
-        deps.push(dep);
+    fn.registerConsumer = (consumer: () => void) => {
+        inputs.forEach(input => input.registerConsumer(consumer));
     };
 
-    inputs.forEach(input => input.registerDep(fn));
+    inputs.forEach(input => input.registerConsumer(fn));
     
     return fn;
 }
@@ -83,13 +81,21 @@ const foo: ReactiveFn<number> = activeSource(1);
 const bar: ReactiveFn<string> = activeSource('Hello');
 
 const twoFoo = transformer([foo], (fooVal) => fooVal * 2);
+const threeFoo = transformer([foo], (fooVal) => fooVal * 3);
+const combinedFoos = transformer([twoFoo, threeFoo], (twoVal, threeVal) => twoVal + threeVal);
 
 const printFoo = consumer([foo], (fooVal) => console.log('printFoo: ', fooVal));
 const printTwoFoo = consumer([twoFoo], (twoFooVal) => console.log('printTwoFoo: ', twoFooVal));
+const printCombinedFoo = consumer([combinedFoos], (combinedVal) => console.log('printCombinedFoo: ', combinedVal));
 const printBar = consumer([bar], (barVal) => console.log('printBar: ', barVal));
-const printAll = consumer([foo, twoFoo, bar], (fooVal, twoFooVal, barVal) => console.log('printAll: ', fooVal, twoFooVal, barVal));
+const printAll = consumer([foo, twoFoo, threeFoo, combinedFoos, bar], (fooVal, twoFooVal, threeFooVal, combinedFooVal, barVal) => console.log('printAll: ', fooVal, twoFooVal, threeFooVal, combinedFooVal, barVal));
 
-// console.log(twoFoo());
+printAll();
+console.log('');
+
+console.log('foo(1)');
+foo(1);
+console.log('');
 
 console.log('foo(2)');
 foo(2);

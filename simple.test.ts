@@ -1,5 +1,21 @@
 import { consumer, activeSource, transformer, batch } from './index';
 
+describe('a source', () => {
+    it('can be invoked to get its current value', () => {
+        const source = activeSource(1);
+
+        expect(source()).toBe(1);
+    });
+
+    it('can have it\'s value updated', () => {
+        const source = activeSource(1);
+
+        source(2);
+
+        expect(source()).toBe(2);
+    });
+});
+
 describe('a consumer with a simple source', () => {
     it('does not invoke automatically', () => {
         const spy = jest.fn();

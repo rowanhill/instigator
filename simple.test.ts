@@ -35,6 +35,18 @@ describe('a transformer', () => {
 
         expect(val).toBe(4);
     });
+
+    it('does not execute its computation function when invoked if its inputs are unchanged', () => {
+        const execSpy = jest.fn();
+        const source = activeSource(1);
+        const double = transformer([source], (s) => { execSpy(); return s * 2; });
+        double();
+        execSpy.mockReset();
+
+        double();
+
+        expect(execSpy).not.toHaveBeenCalled();
+    });
 });
 
 describe('a consumer with a simple source', () => {

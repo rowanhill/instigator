@@ -14,6 +14,26 @@ describe('a source', () => {
 
         expect(source()).toBe(2);
     });
+
+    it('invokes its consumers when its value changes', () => {
+        const source = activeSource({foo: 'bar'});
+        const spy = jest.fn();
+        source.registerConsumer(spy);
+
+        source({foo: 'new value'});
+
+        expect(spy).toHaveBeenCalled();
+    });
+
+    it('does not invoke its registered consumers when changed to a value shallowly equal to its previous value', () => {
+        const source = activeSource({foo: 'bar'});
+        const spy = jest.fn();
+        source.registerConsumer(spy);
+
+        source({foo: 'bar'});
+
+        expect(spy).not.toHaveBeenCalled();
+    });
 });
 
 describe('a transformer', () => {
@@ -46,6 +66,19 @@ describe('a transformer', () => {
         double();
 
         expect(execSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not execute its computation function when invoked if its inputs are shallowly equal', () => {
+        const spy = jest.fn();
+        const source = activeSource({foo: 'bar'});
+        const transf = transformer([source], spy);
+        transf();
+        spy.mockReset();
+
+        source({foo: 'bar'});
+        transf();
+
+        expect(spy).not.toHaveBeenCalled();
     });
 });
 
@@ -97,7 +130,17 @@ describe('a consumer with a simple source', () => {
         source(1);
 
         expect(spy).not.toHaveBeenCalled();
-    })
+    });
+
+    it('is not invoked when the source is set to a value shallowly equal to its previous value', () => {
+        const spy = jest.fn();
+        const source = activeSource({foo: 'bar'});
+        consumer([source], spy);
+
+        source({foo: 'bar'});
+
+        expect(spy).not.toHaveBeenCalled();
+    });
 });
 
 describe('a consumer with two simple sources', () => {

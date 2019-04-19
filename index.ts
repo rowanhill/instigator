@@ -1,3 +1,5 @@
+import shallowEqual from 'shallow-equals';
+
 export interface ReactiveFn<R> {
     (updated?: R): R;
     registerConsumer: (consumer: () => void) => void;
@@ -9,7 +11,7 @@ export function activeSource<R>(initial: R): ReactiveFn<R> {
     let latest: R = initial;
     const consumers: Set<() => void> = new Set();
     const fn: ReactiveFn<R> = function(updated?: R) {
-        if (arguments.length === 1 && latest !== updated) {
+        if (arguments.length === 1 && !shallowEqual(latest, updated)) {
             latest = updated!;
             if (batchedConsumers !== null) {
                 for (const c of consumers) {
@@ -77,7 +79,7 @@ export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any
     const fn: ReactiveFn<R> = () => {
         const args = inputs.map(d => d());
         for (let i = 0; i < args.length; i++) {
-            if (lastArgs[i] !== args[i]) {
+            if (!shallowEqual(lastArgs[i], args[i])) {
                 latest = execute(...args);
                 lastArgs = args;
                 break;
@@ -141,7 +143,7 @@ export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) =>
             lastArgs = args;
         } else {
             for (let i = 0; i < args.length; i++) {
-                if (lastArgs[i] !== args[i]) {
+                if (!shallowEqual(lastArgs[i], args[i])) {
                     execute(...args);
                     lastArgs = args;
                     break;

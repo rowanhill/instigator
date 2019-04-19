@@ -88,8 +88,6 @@ export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any
     fn.registerConsumer = (consumer: () => void) => {
         inputs.forEach(input => input.registerConsumer(consumer));
     };
-
-    inputs.forEach(input => input.registerConsumer(fn));
     
     return fn;
 }

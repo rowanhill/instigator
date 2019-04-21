@@ -1,5 +1,5 @@
 {
-  "name": "reflex",
+  "name": "instigator",
   "version": "0.1.0",
   "description": "A minimal memoization / observer pattern library",
   "main": "dist/index.js",

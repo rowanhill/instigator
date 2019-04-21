@@ -1,16 +1,19 @@
 {
   "name": "reflex",
   "version": "0.1.0",
-  "description": "",
+  "description": "A minimal memoization / observer pattern library",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
     "jest": "jest --watch",
     "test": "jest"
   },
-  "author": "",
+  "author": "Rowan Hill",
   "license": "ISC",
   "dependencies": {
     "shallow-equals": "^1.0.0"

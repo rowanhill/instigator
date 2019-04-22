@@ -40,9 +40,8 @@ have changed (based on a shallow equality check).
 If you want to update multiple sources but only trigger downstream consumers once, you can use batch:
 
 ```js
-import { batch } from 'instantiator';
+import { batch, activeSource, consumer } from 'instantiator';
 
-// ... set up source1, source2, source3
 const source1 = activeSource('1a');
 const source2 = activeSource('2a');
 const source3 = activeSource('3a');

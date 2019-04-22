@@ -35,4 +35,28 @@ number(2); // Nothing happens
 ```
 
 Tranformers and consumers are memoised, and only execute their functions if their inputs
-have changed (based on a shallow equality check)
+have changed (based on a shallow equality check).
+
+If you want to update multiple sources but only trigger downstream consumers once, you can use batch:
+
+```js
+import { batch } from 'instantiator';
+
+// ... set up source1, source2, source3
+const source1 = activeSource('1a');
+const source2 = activeSource('2a');
+const source3 = activeSource('3a');
+const logConsumer = consumer([source1, source2, source3], console.log);
+
+// Without batch, an update to any source will trigger the consumer
+source1('1b'); // prints 1b, 2a, 3a
+source2('2b'); // prints 1b, 2b, 3a
+source3('3b'); // prints 1b, 2b, 3b
+
+// With batch, updates are held until the end
+batch(() => { // The function passed to batch is executed immediately and synchronously
+    source1('1c'); // Nothing is printed
+    source2('2c'); // Nothing is printed
+    source3('3c'); // Nothing is printed
+}); // Once the batch function completes consumers trigger, so logger prints 1c, 2c, 3c
+```

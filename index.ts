@@ -77,6 +77,14 @@ export function transformer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, R>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) => R
 ): ReactiveFn<R>;
+export function transformer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, R>(
+    inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>],
+    execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) => R
+): ReactiveFn<R>;
+export function transformer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R>(
+    inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>, ReactiveFn<T12>],
+    execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) => R
+): ReactiveFn<R>;
 export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R): ReactiveFn<R> {
     let lastArgs = inputs.map(i => i());
     let latest: R = execute(...lastArgs);
@@ -138,6 +146,14 @@ export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) => void
+): () => void;
+export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
+    inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>],
+    execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) => void
+): () => void;
+export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
+    inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>, ReactiveFn<T12>],
+    execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) => void
 ): () => void;
 export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void): () => void {
     let lastArgs = inputs.map(i => i());

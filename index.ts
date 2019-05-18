@@ -1,16 +1,21 @@
 import shallowEqual from 'shallow-equals';
 
-export interface ReactiveFn<R> {
+export interface ActiveSource<R> {
     (updated?: R): R;
+    registerConsumer: (consumer: () => void) => void;
+}
+
+export interface ReactiveFn<R> {
+    (): R;
     registerConsumer: (consumer: () => void) => void;
 }
 
 let batchedConsumers: Set<() => void>|null = null;
 
-export function activeSource<R>(initial: R): ReactiveFn<R> {
+export function activeSource<R>(initial: R): ActiveSource<R> {
     let latest: R = initial;
     const consumers: Set<() => void> = new Set();
-    const fn: ReactiveFn<R> = function(updated?: R) {
+    const fn: ActiveSource<R> = function(updated?: R) {
         if (arguments.length === 1 && !shallowEqual(latest, updated)) {
             latest = updated!;
             if (batchedConsumers !== null) {

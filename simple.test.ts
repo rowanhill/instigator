@@ -141,6 +141,17 @@ describe('a consumer with a simple source', () => {
 
         expect(spy).not.toHaveBeenCalled();
     });
+
+    it('is not invoked after deregistering', () => {
+        const spy = jest.fn();
+        const source = activeSource(1);
+        const cons = consumer([source], spy);
+
+        cons.deregister();
+        source(2);
+
+        expect(spy).not.toHaveBeenCalled();
+    });
 });
 
 describe('a consumer with two simple sources', () => {
@@ -155,6 +166,19 @@ describe('a consumer with two simple sources', () => {
 
         s2('beta');
         expect(spy).toHaveBeenCalledWith('two', 'beta');
+    });
+
+    it('is not invoked after deregistering', () => {
+        const spy = jest.fn();
+        const s1 = activeSource('one');
+        const s2 = activeSource('alpha');
+        const cons = consumer([s1, s2], spy);
+
+        cons.deregister();
+        s1('two');
+        s2('beta');
+
+        expect(spy).not.toHaveBeenCalled();
     });
 });
 
@@ -176,6 +200,18 @@ describe('a consumer with a transformer input', () => {
         const t = transformer([s], x => x % 3 === 0);
         consumer([t], spy);
 
+        s(2);
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('is not invoked after deregistering', () => {
+        const spy = jest.fn();
+        const s = activeSource(1);
+        const t = transformer([s], x => x * 2);
+        const cons = consumer([t], spy);
+
+        cons.deregister();
         s(2);
 
         expect(spy).not.toHaveBeenCalled();

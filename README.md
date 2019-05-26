@@ -58,4 +58,11 @@ batch(() => { // The function passed to batch is executed immediately and synchr
     source2('2c'); // Nothing is printed
     source3('3c'); // Nothing is printed
 }); // Once the batch function completes consumers trigger, so logger prints 1c, 2c, 3c
+
+// After deregistering a consumer, it is not triggered by changes to its sources
+logConsumer.deregister();
+source1('1d'); // Nothing is printed
+source2('2d'); // Nothing is printed
+source3('3d'); // Nothing is printed
+
 ```

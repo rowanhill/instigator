@@ -3,11 +3,18 @@ import shallowEqual from 'shallow-equals';
 export interface ActiveSource<R> {
     (updated?: R): R;
     registerConsumer: (consumer: () => void) => void;
+    deregisterConsumer: (consumer: () => void) => void;
 }
 
 export interface ReactiveFn<R> {
     (): R;
     registerConsumer: (consumer: () => void) => void;
+    deregisterConsumer: (consumer: () => void) => void;
+}
+
+export interface ReactiveConsumer {
+    (): void;
+    deregister: () => void;
 }
 
 let batchedConsumers: Set<() => void>|null = null;
@@ -32,6 +39,9 @@ export function activeSource<R>(initial: R): ActiveSource<R> {
     };
     fn.registerConsumer = (consumer: () => void) => {
         consumers.add(consumer);
+    };
+    fn.deregisterConsumer = (consumer: () => void) => {
+        consumers.delete(consumer);
     };
 
     return fn;
@@ -103,6 +113,9 @@ export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any
     fn.registerConsumer = (consumer: () => void) => {
         inputs.forEach(input => input.registerConsumer(consumer));
     };
+    fn.deregisterConsumer = (consumer: () => void) => {
+        inputs.forEach(input => input.deregisterConsumer(consumer));
+    }
     
     return fn;
 }
@@ -110,52 +123,52 @@ export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any
 export function consumer<T1>(
     inputs: [ReactiveFn<T1>],
     execute: (...args: [T1]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>],
     execute: (...args: [T1, T2]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>],
     execute: (...args: [T1, T2, T3]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>],
     execute: (...args: [T1, T2, T3, T4]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>],
     execute: (...args: [T1, T2, T3, T4, T5]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>],
     execute: (...args: [T1, T2, T3, T4, T5, T6]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11]) => void
-): () => void;
+): ReactiveConsumer;
 export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
     inputs: [ReactiveFn<T1>, ReactiveFn<T2>, ReactiveFn<T3>, ReactiveFn<T4>, ReactiveFn<T5>, ReactiveFn<T6>, ReactiveFn<T7>, ReactiveFn<T8>, ReactiveFn<T9>, ReactiveFn<T10>, ReactiveFn<T11>, ReactiveFn<T12>],
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) => void
-): () => void;
-export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void): () => void {
+): ReactiveConsumer;
+export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void): ReactiveConsumer {
     let lastArgs = inputs.map(i => i());
     const fn = (force: boolean = false) => {
         const args = inputs.map(i => i());
@@ -173,7 +186,13 @@ export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) =>
         }
     };
     inputs.forEach(d => d.registerConsumer(fn));
-    return () => { fn(true); };
+    const result: ReactiveConsumer = () => { fn(true); };
+    result.deregister = () => {
+        inputs.forEach(i => {
+            i.deregisterConsumer(fn);
+        });
+    }
+    return result;
 }
 
 export function batch(execute: () => void) {

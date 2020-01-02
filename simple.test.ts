@@ -112,7 +112,7 @@ describe('a consumer with a simple source', () => {
         expect(spy).toHaveBeenCalledTimes(2);
     });
 
-    it('is invoked with the new value when it\'s source changes', () => {
+    it('is invoked with the new value when it\'s input changes', () => {
         const spy = jest.fn();
         const source = activeSource(1);
         consumer([source], spy)
@@ -122,7 +122,7 @@ describe('a consumer with a simple source', () => {
         expect(spy).toHaveBeenCalledWith(2);
     });
 
-    it('is not invoked when the source is set to the same value', () => {
+    it('is not invoked when the input is set to the same value', () => {
         const spy = jest.fn();
         const source = activeSource(1);
         consumer([source], spy)
@@ -132,7 +132,7 @@ describe('a consumer with a simple source', () => {
         expect(spy).not.toHaveBeenCalled();
     });
 
-    it('is not invoked when the source is set to a value shallowly equal to its previous value', () => {
+    it('is not invoked when the input is set to a value shallowly equal to its previous value', () => {
         const spy = jest.fn();
         const source = activeSource({foo: 'bar'});
         consumer([source], spy);

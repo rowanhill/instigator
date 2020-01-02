@@ -18,13 +18,13 @@ const triple = transformer([number], (n) => n * 3);
 const sumOfAllThree = transformer([number, double, triple], (n, d, t) => n + d + t);
 
 // Consumers take transformers/sources as inputs, and produce side-effects (no outputs)
-const logSum = consumer([sumOfAllThree], (sum) => console.log(sumOfAllThree));
+const logSum = consumer([sumOfAllThree], (sum) => console.log(sum));
 
 // Consumers do not trigger when created, but can be invoked manually if you like
 logSum(); // prints 6 (because number is set to 1, so 1 + 2 + 3 = 6)
 
 // Consumers are invoked automatically when an input they (or their inputs,
-// or their inputs' inputs, etc) rely on
+// or their inputs' inputs, etc) rely on changes
 number(2); // Triggers logSum, which prints 12 (from 2 + 4 + 6).
 
 // The current value of sources and transformers can be retrieved at any time
@@ -45,7 +45,7 @@ import { batch, activeSource, consumer } from 'instigator';
 const source1 = activeSource('1a');
 const source2 = activeSource('2a');
 const source3 = activeSource('3a');
-const logConsumer = consumer([source1, source2, source3], console.log);
+consumer([source1, source2, source3], console.log);
 
 // Without batch, an update to any source will trigger the consumer
 source1('1b'); // prints 1b, 2a, 3a
@@ -58,11 +58,22 @@ batch(() => { // The function passed to batch is executed immediately and synchr
     source2('2c'); // Nothing is printed
     source3('3c'); // Nothing is printed
 }); // Once the batch function completes consumers trigger, so logger prints 1c, 2c, 3c
+```
+
+You may wish to 'disable' a consumer, such that changes to its inputs no longer trigger it. You can
+do this by deregistering it:
+
+```js
+import { activeSource, consumer } from 'instigator';
+
+const source1 = activeSource('1a');
+const source2 = activeSource('2a');
+const source3 = activeSource('3a');
+const logConsumer = consumer([source1, source2, source3], console.log);
 
 // After deregistering a consumer, it is not triggered by changes to its sources
 logConsumer.deregister();
 source1('1d'); // Nothing is printed
 source2('2d'); // Nothing is printed
 source3('3d'); // Nothing is printed
-
 ```

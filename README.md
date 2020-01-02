@@ -7,7 +7,7 @@ Instigator lets you define networks of sources, transformers, and consumers. Con
 automatically triggered when their inputs change.
 
 ```js
-import { activeSource, transformer, consumer } from 'instantiator';
+import { activeSource, transformer, consumer } from 'instigator';
 
 // Sources can any (single) value
 const number = activeSource(1);
@@ -40,7 +40,7 @@ have changed (based on a shallow equality check).
 If you want to update multiple sources but only trigger downstream consumers once, you can use batch:
 
 ```js
-import { batch, activeSource, consumer } from 'instantiator';
+import { batch, activeSource, consumer } from 'instigator';
 
 const source1 = activeSource('1a');
 const source2 = activeSource('2a');

@@ -285,3 +285,93 @@ describe('batched updates', () => {
         expect(spy).toHaveBeenCalledWith(2, 'b', 4);
     });
 });
+
+describe('function inputs', () => {
+    it('are considered shallowly equal by sources', () => {
+        const fn = () => true;
+        const fn2 = () => true;
+        const source = activeSource(fn);
+        const spy = jest.fn();
+        source.registerConsumer(spy);
+
+        source(fn2);
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('are considered shallowly equal by transformers', () => {
+        const spy = jest.fn();
+        const source = activeSource({a: () => true});
+        const t = transformer([source], (obj) => obj.a);
+        const transf = transformer([t], spy);
+        transf();
+        spy.mockReset();
+
+        // Source is a simple object, so compared with shallow equals, so will treat two literal functions
+        // as different (i.e. update the stored value). extract_fn_prop extracts the 'a' prop and passes it
+        // to our transformer under test, 'transf'
+        source({a: () => true});
+        transf();
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('are considered shallowly equal by consumers', () => {
+        const spy = jest.fn();
+        const source = activeSource({a: () => true});
+        const extract_fn_prop = transformer([source], (obj) => obj.a);
+        consumer([extract_fn_prop], spy);
+
+        // Source is a simple object, so compared with shallow equals, so will treat two literal functions
+        // as different (i.e. trigger the consumer). extract_fn_prop extracts the 'a' prop and passes it
+        // to our consumer under test
+        source({a: () => true});
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+});
+
+describe('custom comparator', () => {
+    it('can be used to differentiate function-typed inputs to sources', () => {
+        const fn = () => true;
+        const fn2 = () => true;
+        const source = activeSource(fn, (a, b) => a === b);
+        const spy = jest.fn();
+        source.registerConsumer(spy);
+
+        source(fn2);
+
+        expect(spy).toHaveBeenCalled();
+    });
+
+    it('can be used to differentiate function-typed inputs to transformers', () => {
+        const spy = jest.fn();
+        const source = activeSource({a: () => true});
+        const extract_fn_prop = transformer([source], (obj) => obj.a);
+        const transf = transformer([extract_fn_prop], spy, (a, b) => a === b);
+        transf();
+        spy.mockReset();
+
+        // Source is a simple object, so compared with shallow equals, so will treat two literal functions
+        // as different (i.e. update the stored value). extract_fn_prop extracts the 'a' prop and passes it
+        // to our transformer under test, 'transf'
+        source({a: () => true});
+        transf();
+
+        expect(spy).toHaveBeenCalled();
+    });
+
+    it('can be used to differentiate function-typed inputs to consumers', () => {
+        const spy = jest.fn();
+        const source = activeSource({a: () => true});
+        const extract_fn_prop = transformer([source], (obj) => obj.a);
+        consumer([extract_fn_prop], spy, (a, b) => a === b);
+
+        // Source is a simple object, so compared with shallow equals, so will treat two literal functions
+        // as different (i.e. trigger the consumer). extract_fn_prop extracts the 'a' prop and passes it
+        // to our consumer under test
+        source({a: () => true});
+
+        expect(spy).toHaveBeenCalled();
+    });
+});

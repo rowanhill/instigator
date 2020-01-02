@@ -42,6 +42,30 @@ describe('Summary example', () => {
     });
 });
 
+describe('Custom comparitors example', () => {
+    it('executes as per the comments', () => {
+        // Without a custom equality check, all simple functions are considered equal
+        const fnSource: ActiveSource<() => number> = activeSource(() => 1);
+        const doubler = transformer([fnSource], (fn) => (() => fn() * 2));
+        consumer([doubler], (fn) => console.log(fn()));
+        fnSource(() => 1); // Does nothing
+        fnSource(() => 2); // Does nothing
+        expect(console.log).not.toHaveBeenCalled();
+
+        // We can override the default shallow equality check and use a simple reference equality test
+        // Note the source, transformer and consumer all receive functions as inputs, so all need a custom
+        // comparitor
+        const refEquals: Comparator<() => number> = (a, b) => a === b;
+        const fnSourceCustom = activeSource(() => 1, refEquals);
+        const doublerCustom = transformer([fnSourceCustom], (fn) => (() => fn() * 2), refEquals);
+        consumer([doublerCustom], (fn) => console.log(fn()), refEquals);
+        fnSourceCustom(() => 1); // Prints 2
+        expectLogAndReset(2);
+        fnSourceCustom(() => 2); // Prints 4
+        expectLogAndReset(4);
+    });
+});
+
 describe('Batching example', () => {
     it('executes as per the comments', () => {
         const source1 = activeSource('1a');

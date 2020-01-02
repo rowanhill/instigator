@@ -35,7 +35,30 @@ number(2); // Nothing happens
 ```
 
 Tranformers and consumers are memoised, and only execute their functions if their inputs
-have changed (based on a shallow equality check).
+have changed. Sources also memoise their values, so only update that value (and trigger)
+any downstream consumers if their input changes. Input changes are determined by shallow
+equality checks by default, but can be overridden by providing a custom comparitor:
+
+```js
+import { activeSource, transformer, consumer } from 'instigator';
+
+// Without a custom equality check, all simple functions are considered equal
+const fnSource: ActiveSource<() => number> = activeSource(() => 1);
+const doubler = transformer([fnSource], (fn) => (() => fn() * 2));
+consumer([doubler], (fn) => console.log(fn()));
+fnSource(() => 1); // Does nothing
+fnSource(() => 2); // Does nothing
+
+// We can override the default shallow equality check and use a simple reference equality test
+// Note the source, transformer and consumer all receive functions as inputs, so all need a custom
+// comparitor
+const refEquals: Comparator<() => number> = (a, b) => a === b;
+const fnSourceCustom = activeSource(() => 1, refEquals);
+const doublerCustom = transformer([fnSourceCustom], (fn) => (() => fn() * 2), refEquals);
+consumer([doublerCustom], (fn) => console.log(fn()), refEquals);
+fnSourceCustom(() => 1); // Prints 2
+fnSourceCustom(() => 2); // Prints 4
+```
 
 If you want to update multiple sources but only trigger downstream consumers once, you can use batch:
 

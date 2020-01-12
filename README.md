@@ -100,3 +100,17 @@ source1('1d'); // Nothing is printed
 source2('2d'); // Nothing is printed
 source3('3d'); // Nothing is printed
 ```
+
+You may also wish with 'merge' a number of sources / transformers into a single object. You can do this
+with mergeTranformer:
+
+```js
+import { activeSource, transformer, mergeTransformer } from 'instigator';
+
+const source = activeSource(1);
+const double = transformer([source], (i) => i * 2);
+
+const merged = mergeTransformer({ source, double });
+
+console.log(JSON.stringify(merged())); // Prints { source: 1, double: 2 }
+```

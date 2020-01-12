@@ -1,4 +1,4 @@
-import { Comparator, consumer, activeSource, transformer, batch, ActiveSource } from './index';
+import { Comparator, consumer, activeSource, transformer, batch, ActiveSource, mergeTransformer } from './index';
 
 // Set up a global fake console.log
 const console = {
@@ -105,5 +105,18 @@ describe('deregistering example', () => {
         source2('2d'); // Nothing is printed
         source3('3d'); // Nothing is printed
         expect(console.log).not.toHaveBeenCalled();
+    });
+});
+
+describe('mergeTransformer example', () => {
+    it('executes as per the comments', () => {
+        const source = activeSource(1);
+        const double = transformer([source], (i) => i * 2);
+        
+        const merged = mergeTransformer({ source, double });
+        
+        console.log(JSON.stringify(merged())); // Prints { source: 1, double: 2 }
+
+        expect(console.log).toHaveBeenCalledWith('{"source":1,"double":2}');
     });
 });

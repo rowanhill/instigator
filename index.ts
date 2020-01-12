@@ -109,6 +109,7 @@ export function transformer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) => R,
     equals?: Comparator<R>,
 ): ReactiveFn<R>;
+export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R, equals?: Comparator<R>): ReactiveFn<R>;
 export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R, equals: Comparator<R> = shallowEqual): ReactiveFn<R> {
     let lastArgs = inputs.map(i => i());
     let latest: R = execute(...lastArgs);
@@ -194,6 +195,7 @@ export function consumer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(
     execute: (...args: [T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12]) => void,
     equals?: Comparator<T1|T2|T3|T4|T5|T6|T7|T8|T9|T10|T11|T12>,
 ): ReactiveConsumer;
+export function consumer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void, equals?: Comparator<R>): ReactiveConsumer;
 export function consumer(inputs: ReactiveFn<any>[], execute: (...args: any[]) => void, equals: Comparator<any> = shallowEqual): ReactiveConsumer {
     let lastArgs = inputs.map(i => i());
     const fn = (force: boolean = false) => {
@@ -236,3 +238,21 @@ export function batch(execute: () => void) {
         execute();
     }
 }
+
+type ReactiveSpec<R> = {
+    [P in keyof R]: ReactiveFn<R[P]>;
+}
+
+export function mergeTransformer<R>(spec: ReactiveSpec<R>): ReactiveFn<R> {
+    const keys = Object.keys(spec) as Array<keyof R>;
+    const values = keys.map((k) => spec[k]);
+    const builder = (...args: any[]) => keys.reduce(
+        (acc, k, i) => {
+            acc[k] = args[i];
+            return acc;
+        },
+        {} as R,
+    );
+
+    return transformer(values, builder);
+};

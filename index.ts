@@ -243,7 +243,7 @@ type ReactiveSpec<R> = {
     [P in keyof R]: ReactiveFn<R[P]>;
 }
 
-export function mergeTransformer<R>(spec: ReactiveSpec<R>): ReactiveFn<R> {
+export function mergeTransformer<R>(spec: ReactiveSpec<R>, equals: Comparator<R> = shallowEqual): ReactiveFn<R> {
     const keys = Object.keys(spec) as Array<keyof R>;
     const values = keys.map((k) => spec[k]);
     const builder = (...args: any[]) => keys.reduce(
@@ -254,5 +254,5 @@ export function mergeTransformer<R>(spec: ReactiveSpec<R>): ReactiveFn<R> {
         {} as R,
     );
 
-    return transformer(values, builder);
+    return transformer(values, builder, equals);
 };

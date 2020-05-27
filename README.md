@@ -1,15 +1,25 @@
 # instigator
 A minimal memoization / observer pattern library
 
-## Usage
+Instigator lets you define networks of sources, transformers, and consumers.
 
-Instigator lets you define networks of sources, transformers, and consumers. Consumers are
-automatically triggered when their inputs change.
+**Sources** are values that can change over time.
+
+**Transformers** are functions that calculate new values, taking sources and other
+transformers as inputs. Transformers are automatically _memoized_ (i.e. they return
+the previous result if their inputs have not changed) and they are _lazy_ (i.e. they
+are only calculated when a downstream consumer is created or triggered).
+
+**Consumers** are functions that perform side-effects and have no return value. They
+also take sources and transformers as inputs. They are triggered automatically when any
+of their inputs change.
+
+## Usage
 
 ```js
 import { activeSource, transformer, consumer } from 'instigator';
 
-// Sources can any (single) value
+// Sources can be any value
 const number = activeSource(1);
 
 // Transformers take sources (or other transformers) as inputs, and return outputs
@@ -34,15 +44,17 @@ console.log(number(), double(), triple()); // prints 2, 4, 6
 number(2); // Nothing happens
 ```
 
-Tranformers and consumers are memoised, and only execute their functions if their inputs
-have changed. Sources also memoise their values, so only update that value (and trigger)
-any downstream consumers if their input changes. Input changes are determined by shallow
-equality checks by default, but can be overridden by providing a custom comparitor:
+Tranformers and consumers only execute their functions if their inputs have changed.
+Sources also store their values and only trigger downstream consumers if their value
+changes.
+
+Input changes are determined by shallow equality checks by default, but can be overridden
+by providing a custom comparitor:
 
 ```js
 import { activeSource, transformer, consumer } from 'instigator';
 
-// Without a custom equality check, all simple functions are considered equal
+// Using the default equality check, all simple functions are considered equal
 const fnSource: ActiveSource<() => number> = activeSource(() => 1);
 const doubler = transformer([fnSource], (fn) => (() => fn() * 2));
 consumer([doubler], (fn) => console.log(fn()));
@@ -71,9 +83,9 @@ const source3 = activeSource('3a');
 consumer([source1, source2, source3], console.log);
 
 // Without batch, an update to any source will trigger the consumer
-source1('1b'); // prints 1b, 2a, 3a
-source2('2b'); // prints 1b, 2b, 3a
-source3('3b'); // prints 1b, 2b, 3b
+source1('1b'); // Prints 1b, 2a, 3a
+source2('2b'); // Prints 1b, 2b, 3a
+source3('3b'); // Prints 1b, 2b, 3b
 
 // With batch, updates are held until the end
 batch(() => { // The function passed to batch is executed immediately and synchronously
@@ -100,6 +112,9 @@ source1('1d'); // Nothing is printed
 source2('2d'); // Nothing is printed
 source3('3d'); // Nothing is printed
 ```
+
+(Note that sources retain references to consumers, so you may wish to deregister consumers to avoid
+memory leaks and unexpected actions occuring once your consumer has gone out of scope)
 
 You may also wish with 'merge' a number of sources / transformers into a single object. You can do this
 with mergeTranformer:

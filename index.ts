@@ -111,17 +111,27 @@ export function transformer<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R
 ): ReactiveFn<R>;
 export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R, equals?: Comparator<R>): ReactiveFn<R>;
 export function transformer<R>(inputs: ReactiveFn<any>[], execute: (...args: any[]) => R, equals: Comparator<R> = shallowEqual): ReactiveFn<R> {
-    let lastArgs = inputs.map(i => i());
-    let latest: R = execute(...lastArgs);
+    let lastArgs: any[];
+    let latest: R;
     
     const fn: ReactiveFn<R> = () => {
         const args = inputs.map(d => d());
-        for (let i = 0; i < args.length; i++) {
-            if (!equals(lastArgs[i], args[i])) {
-                latest = execute(...args);
-                lastArgs = args;
-                break;
+        // If we don't have lastArgs yet, we've never invoked execute, so we definitely need to recalculate
+        // (Note that we don't check latest - it may legitimately be falsey)
+        let shouldRecalculate = !lastArgs;
+
+        // Even if we have lastArgs, we need to recalculate if the inputs have changed
+        if (!shouldRecalculate) {
+            for (let i = 0; i < args.length; i++) {
+                if (!equals(lastArgs[i], args[i])) {
+                    shouldRecalculate = true;
+                    break;
+                }
             }
+        }
+        if (shouldRecalculate) {
+            latest = execute(...args);
+            lastArgs = args;
         }
         return latest;
     };

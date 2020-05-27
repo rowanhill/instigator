@@ -80,6 +80,35 @@ describe('a transformer', () => {
 
         expect(spy).not.toHaveBeenCalled();
     });
+
+    it('does not execute its computation function when created', () => {
+        const spy = jest.fn();
+        const source = activeSource(1);
+        
+        transformer([source], spy);
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('does not execute its computation function when its source(s) change without a downstream consumer', () => {
+        const spy = jest.fn();
+        const source = activeSource(1);
+        transformer([source], spy);
+
+        source(2);
+
+        expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('does not execute the computation function of upstream transformers when created', () => {
+        const spy = jest.fn();
+        const source = activeSource(1);
+        const transf1 = transformer([source], spy);
+
+        transformer([transf1], () => {});
+
+        expect(spy).not.toHaveBeenCalled();
+    });
 });
 
 describe('a consumer with a simple source', () => {
@@ -215,6 +244,16 @@ describe('a consumer with a transformer input', () => {
         s(2);
 
         expect(spy).not.toHaveBeenCalled();
+    });
+
+    it('executes upstream transformers\' computation functions automatically when created', () => {
+        const spy = jest.fn();
+        const s = activeSource(1);
+        const t = transformer([s], spy);
+        
+        consumer([t], () => {});
+
+        expect(spy).toHaveBeenCalled();
     });
 });
 
